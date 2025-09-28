@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
-	"example.com/dau/internal/date"
-	"example.com/dau/internal/pkg"
 	"sync"
 	"time"
+
+	"example.com/dau/internal/date"
+	"example.com/dau/internal/pkg"
 )
 
 type Repo struct {
@@ -47,6 +48,15 @@ func (r *Repo) Set(ctx context.Context, userID int, authorID int) error {
 func (r *Repo) GetUniqueUsersCountForAuthors(ctx context.Context, authorIDs []int) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
+
+	// Если lastUpdate больше чем вчера, значит данные еще не "переехали" во вчера
+	today := r.dateService.Today()
+	yesterday := today.Add(-24 * time.Hour)
+
+	if r.lastUpdate.After(pkg.DayStart(yesterday)) {
+		// Данные еще не готовы для вчерашнего дня
+		return []int{}, nil
+	}
 
 	var result []int
 
