@@ -24,9 +24,9 @@ func (r *Repo) Set(ctx context.Context, userID int, authorID int) error {
 	defer r.mutex.Unlock()
 
 	now := time.Now()
-	today := r.dateService.Today()
+	yesterday := r.dateService.Today().Add(-24 * time.Hour)
 
-	if !r.lastUpdate.IsZero() && pkg.DayStart(today).After(pkg.DayStart(r.lastUpdate)) {
+	if !r.lastUpdate.IsZero() && r.lastUpdate.After(pkg.DayStart(yesterday)) {
 		r.yesterdaySets = r.todaySets
 		r.todaySets = make(map[int]map[int]struct{})
 	}
